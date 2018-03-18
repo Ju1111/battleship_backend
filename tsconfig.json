@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
+    "noImplicitAny": false,
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -9,23 +10,22 @@
     "skipLibCheck": false,
     "sourceMap": true,
     "strictNullChecks": true,
-    "target": "ES2017",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "es2017",
     "types" : [ "node" ],
     "typeRoots": [
-       "node_modules/@types",
-    "@typesCustom"
-   ],
-  "noImplicitAny": true,
-  "strictNullChecks": true,
-    "outDir": "dist/",
+      "node_modules/@types"
+    ],
+    "outDir": "target/",
     "rootDir": "src/"
   },
   "include": [
-    "src/**/*"
+      "src/**/*"
   ],
   "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
+      "node_modules",
+      "**/*.spec.ts"
   ],
   "typeRoots": [
     "@typesCustom",
