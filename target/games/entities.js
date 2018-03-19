@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const entity_1 = require("../users/entity");
-const emptyBoard = [
+exports.emptyBoard = [
     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
@@ -30,11 +30,11 @@ __decorate([
     __metadata("design:type", Number)
 ], Game.prototype, "id", void 0);
 __decorate([
-    typeorm_1.Column('json', { default: emptyBoard }),
+    typeorm_1.Column('json', { default: exports.emptyBoard }),
     __metadata("design:type", Array)
 ], Game.prototype, "board1", void 0);
 __decorate([
-    typeorm_1.Column('json', { default: emptyBoard }),
+    typeorm_1.Column('json', { default: exports.emptyBoard }),
     __metadata("design:type", Array)
 ], Game.prototype, "board2", void 0);
 __decorate([
