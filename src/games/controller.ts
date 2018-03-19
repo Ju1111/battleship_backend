@@ -71,4 +71,18 @@ export default class GameController {
     return player
   }
 
+  @Authorized()
+  @Get('/games/:id([0-9]+)')
+  getGame(
+    @Param('id') id: number
+  ) {
+    return Game.findOneById(id)
+  }
+
+  @Authorized()
+  @Get('/games')
+  getGames() {
+    return Game.find()
+  }
+
 }

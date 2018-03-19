@@ -58,6 +58,12 @@ let GameController = class GameController {
         });
         return player;
     }
+    getGame(id) {
+        return entities_1.Game.findOneById(id);
+    }
+    getGames() {
+        return entities_1.Game.find();
+    }
 };
 __decorate([
     routing_controllers_1.Authorized(),
@@ -78,6 +84,21 @@ __decorate([
     __metadata("design:paramtypes", [entity_1.default, Number]),
     __metadata("design:returntype", Promise)
 ], GameController.prototype, "joinGame", null);
+__decorate([
+    routing_controllers_1.Authorized(),
+    routing_controllers_1.Get('/games/:id([0-9]+)'),
+    __param(0, routing_controllers_1.Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], GameController.prototype, "getGame", null);
+__decorate([
+    routing_controllers_1.Authorized(),
+    routing_controllers_1.Get('/games'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], GameController.prototype, "getGames", null);
 GameController = __decorate([
     routing_controllers_1.JsonController()
 ], GameController);
