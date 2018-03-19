@@ -40,6 +40,24 @@ let GameController = class GameController {
         });
         return game;
     }
+    async joinGame(user, gameId) {
+        const game = await entities_1.Game.findOneById(gameId);
+        if (!game)
+            throw new routing_controllers_1.BadRequestError(`Game does not exist`);
+        if (game.status !== 'pending')
+            throw new routing_controllers_1.BadRequestError(`Game is already started`);
+        game.status = 'started';
+        await game.save();
+        const player = await entities_1.Player.create({
+            game,
+            user,
+        }).save();
+        index_1.io.emit('action', {
+            type: 'UPDATE_GAME',
+            payload: await entities_1.Game.findOneById(game.id)
+        });
+        return player;
+    }
 };
 __decorate([
     routing_controllers_1.Authorized(),
@@ -50,6 +68,16 @@ __decorate([
     __metadata("design:paramtypes", [entity_1.default]),
     __metadata("design:returntype", Promise)
 ], GameController.prototype, "createGame", null);
+__decorate([
+    routing_controllers_1.Authorized(),
+    routing_controllers_1.Post('/games/:id([0-9]+)/players'),
+    routing_controllers_1.HttpCode(201),
+    __param(0, routing_controllers_1.CurrentUser()),
+    __param(1, routing_controllers_1.Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [entity_1.default, Number]),
+    __metadata("design:returntype", Promise)
+], GameController.prototype, "joinGame", null);
 GameController = __decorate([
     routing_controllers_1.JsonController()
 ], GameController);
