@@ -1,4 +1,17 @@
+import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator'
 import { Board, emptyBoard} from './entities';
+
+@ValidatorConstraint()
+export class IsBoard implements ValidatorConstraintInterface {
+
+  validate(board: Board) {
+    return board.length === 10 &&
+      board.every(row =>
+        row.length === 10 &&
+        row.every(value => typeof(value)==='string')
+      )
+  }
+}
 
 // start a game
 // set maximium number of squares per ship here as well? (= define ships)
