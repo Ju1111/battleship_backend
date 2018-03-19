@@ -13,6 +13,7 @@
     "bcrypt": "^1.0.3",
     "express": "^4.16.3",
     "jsonwebtoken": "^8.2.0",
+    "kcors": "^2.2.1",
     "koa": "^2.5.0",
     "koa-bodyparser": "^4.2.0",
     "koa-multer": "^1.0.2",
