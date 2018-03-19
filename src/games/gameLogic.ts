@@ -58,6 +58,11 @@ export const shipIsDestroyed = (board, value, shiplength) => {
 }
 
 // one player won if all ships are destroyed
-export const gameWon = () => {
-
+export const gameWon = (board) => {
+  return (shipIsDestroyed(board, '1x', 2) &&
+      shipIsDestroyed(board, '2x', 3) &&
+      shipIsDestroyed(board, '3x', 3) &&
+      shipIsDestroyed(board, '4x', 4) &&
+      shipIsDestroyed(board, '5x', 5)
+    )
 }
