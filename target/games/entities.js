@@ -38,6 +38,18 @@ __decorate([
     __metadata("design:type", Array)
 ], Game.prototype, "board2", void 0);
 __decorate([
+    typeorm_1.Column('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], Game.prototype, "p1ready", void 0);
+__decorate([
+    typeorm_1.Column('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], Game.prototype, "p2ready", void 0);
+__decorate([
+    typeorm_1.Column('char', { length: 1, default: '1' }),
+    __metadata("design:type", String)
+], Game.prototype, "turn", void 0);
+__decorate([
     typeorm_1.Column('text', { default: 'pending' }),
     __metadata("design:type", String)
 ], Game.prototype, "status", void 0);
