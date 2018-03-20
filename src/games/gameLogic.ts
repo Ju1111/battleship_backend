@@ -1,5 +1,5 @@
 import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator'
-import { Board, emptyBoard, Row} from './entities';
+import { Board, emptyBoard} from './entities';
 
 @ValidatorConstraint()
 export class IsBoard implements ValidatorConstraintInterface {
@@ -32,7 +32,7 @@ export const isShip = (board: Board, x: number, y: number) => {
 }
 
 // check how many times a value is present in a row
-export const numberOfValues = (row: Row, value: string) => {
+export const numberOfValues = (row: string[], value: string) => {
   return row
     .filter(v => v === value)
     .length
@@ -54,4 +54,17 @@ export const gameWon = (board: Board) => {
       shipIsDestroyed(board, '4x', 4) &&
       shipIsDestroyed(board, '5x', 5)
     )
+}
+
+export const getGuessBoard = (board: Board): Board => {
+  const guessBoard = board.map(row => row.map(
+    value=> {
+      if (['1x','2x','3x','4x','5x'].includes(value))
+        return 's'
+      if (value==='0x')
+        return 'w'
+      return '0'
+    }
+  ))
+  return guessBoard
 }

@@ -48,4 +48,14 @@ exports.gameWon = (board) => {
         exports.shipIsDestroyed(board, '4x', 4) &&
         exports.shipIsDestroyed(board, '5x', 5));
 };
+exports.getGuessBoard = (board) => {
+    const guessBoard = board.map(row => row.map(value => {
+        if (['1x', '2x', '3x', '4x', '5x'].includes(value))
+            return 's';
+        if (value === '0x')
+            return 'w';
+        return '0';
+    }));
+    return guessBoard;
+};
 //# sourceMappingURL=gameLogic.js.map
