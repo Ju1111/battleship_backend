@@ -1,6 +1,7 @@
 import { BaseEntity, PrimaryGeneratedColumn, Column, Entity, Index, OneToMany, ManyToOne } from 'typeorm'
 import User from '../users/entity'
 
+export type Symbol = '1'|'2'
 export type Row = [ string , string ,string ,string ,string ,string ,string ,string ,string ,string]
 export type Board = [ Row, Row, Row, Row, Row, Row,Row, Row, Row, Row]
 
@@ -32,8 +33,19 @@ export class Game extends BaseEntity {
   @Column('json', {default: emptyBoard})
   board2: Board
 
+  @Column('boolean', {default: false})
+  p1ready: boolean
+
+  @Column('boolean', {default: false})
+  p2ready: boolean
+
+  @Column('char', {length:1, default: '1'})
+  turn: Symbol
+
   @Column('text', {default: 'pending'})
   status: Status
+
+
 
   // this is a relation, read more about them here:
   // http://typeorm.io/#/many-to-one-one-to-many-relations
