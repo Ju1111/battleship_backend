@@ -4,7 +4,7 @@ import {
 } from 'routing-controllers'
 import User from '../users/entity'
 import { Game, Player, Board } from './entities'
-import {IsBoard} from './gameLogic'
+import {IsBoard, getGuessBoard} from './gameLogic'
 import { Validate } from 'class-validator'
 import {io} from '../index'
 
@@ -33,10 +33,12 @@ export default class GameController {
     }).save()
 
     const game = await Game.findOneById(entity.id)
+    if (!game) throw new BadRequestError(`Game does not exist`)
+    const guessBoard = getGuessBoard(game.board2)
 
     io.emit('action', {
       type: 'ADD_GAME',
-      payload: game
+      payload: {...game, board2:guessBoard}
     })
 
     return game
