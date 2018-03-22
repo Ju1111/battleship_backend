@@ -1,4 +1,4 @@
-import { BaseEntity, PrimaryGeneratedColumn, Column, Entity, Index, OneToMany, ManyToOne } from 'typeorm'
+import { BaseEntity, PrimaryGeneratedColumn, Column, Entity, Index, OneToMany, ManyToOne, RelationId } from 'typeorm'
 import User from '../users/entity'
 
 export type Symbol = '1'|'2'
@@ -39,6 +39,9 @@ export class Game extends BaseEntity {
   @Column('boolean', {default: false})
   p2ready: boolean
 
+  @Column('char', {length:1, nullable: true})
+  winner: Symbol
+
   @Column('char', {length:1, default: '1'})
   turn: Symbol
 
@@ -66,6 +69,9 @@ export class Player extends BaseEntity {
   @ManyToOne(_ => Game, game => game.players)
   game: Game
 
-  @Column()
+  @RelationId((player: Player)=> player.user)
   userId: number
+
+  @Column('char', {length: 1})
+  symbol: Symbol
 }

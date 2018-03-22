@@ -16,22 +16,14 @@ const routing_controllers_1 = require("routing-controllers");
 const entity_1 = require("../users/entity");
 const entities_1 = require("./entities");
 const gameLogic_1 = require("./gameLogic");
-const class_validator_1 = require("class-validator");
 const index_1 = require("../index");
-class GameUpdate {
-}
-__decorate([
-    class_validator_1.Validate(gameLogic_1.IsBoard, {
-        message: 'Not a valid board'
-    }),
-    __metadata("design:type", Array)
-], GameUpdate.prototype, "board", void 0);
 let GameController = class GameController {
     async createGame(user) {
         const entity = await entities_1.Game.create().save();
         await entities_1.Player.create({
             game: entity,
-            user
+            user,
+            symbol: '1'
         }).save();
         const game = await entities_1.Game.findOneById(entity.id);
         if (!game)
@@ -54,18 +46,98 @@ let GameController = class GameController {
         const player = await entities_1.Player.create({
             game,
             user,
+            symbol: '2'
         }).save();
+        const gameToSend = await entities_1.Game.findOneById(game.id);
+        if (!gameToSend)
+            throw new routing_controllers_1.BadRequestError(`Game does not exist`);
         index_1.io.emit('action', {
             type: 'UPDATE_GAME',
-            payload: await entities_1.Game.findOneById(game.id)
+            payload: Object.assign({}, gameToSend, { board1: gameLogic_1.getGuessBoard(gameToSend.board1) })
         });
         return player;
     }
-    getGame(id) {
-        return entities_1.Game.findOneById(id);
+    async getGame(user, id) {
+        const game = await entities_1.Game.findOneById(id);
+        if (!game)
+            throw new routing_controllers_1.BadRequestError(`Game does not exist`);
+        const player = await entities_1.Player.findOne({ user, game });
+        if (!player)
+            return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(game.board1), board2: gameLogic_1.getGuessBoard(game.board2) });
+        if (player.symbol === '1')
+            return Object.assign({}, game, { board2: gameLogic_1.getGuessBoard(game.board2) });
+        if (player.symbol === '2')
+            return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(game.board1) });
     }
-    getGames() {
-        return entities_1.Game.find();
+    async getGames() {
+        let games = await entities_1.Game.find({ status: 'pending' });
+        return games;
+    }
+    async updateGame(user, gameId, update) {
+        let up;
+        if (update.board) {
+            up = JSON.parse(update.board);
+            console.log(typeof (up[3][4]));
+            console.log(up[3]);
+        }
+        const game = await entities_1.Game.findOneById(gameId);
+        if (!game)
+            throw new routing_controllers_1.NotFoundError(`Game does not exist`);
+        const player = await entities_1.Player.findOne({ user, game });
+        if (!player)
+            throw new routing_controllers_1.ForbiddenError(`You are not part of this game`);
+        if (game.status !== 'started')
+            throw new routing_controllers_1.BadRequestError(`The game is not started yet`);
+        if (game.p1ready && game.p2ready) {
+            if (player.symbol !== game.turn)
+                throw new routing_controllers_1.BadRequestError(`It's not your turn`);
+            switch (player.symbol) {
+                case '1':
+                    console.log(update.x);
+                    game.board2 = gameLogic_1.hit(game.board2, update.x, update.y);
+                    if (gameLogic_1.gameWon(game.board2)) {
+                        game.winner = '1';
+                        game.status = 'finished';
+                    }
+                    else {
+                        game.turn = '2';
+                    }
+                    break;
+                case '2':
+                    game.board1 = gameLogic_1.hit(game.board1, update.x, update.y);
+                    if (gameLogic_1.gameWon(game.board1)) {
+                        game.winner = '2';
+                        game.status = 'finished';
+                    }
+                    else {
+                        game.turn = '1';
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (player.symbol === '1' && !game.p1ready) {
+            console.log('1111111111111111');
+            game.board1 = up;
+            game.p1ready = true;
+        }
+        if (player.symbol === '2' && !game.p2ready) {
+            console.log('22222222222222222');
+            game.board2 = up;
+            game.p2ready = true;
+        }
+        console.log(game);
+        await game.save();
+        const board2 = game.board2;
+        const board1 = game.board1;
+        console.log('================' + typeof (board2));
+        index_1.io.emit('action', {
+            type: 'UPDATE_GAME',
+            payload: player.symbol === '1' ? Object.assign({}, game, { board2: gameLogic_1.getGuessBoard(board2) }) : Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(board1) })
+        });
+        console.log('================' + typeof (board1));
+        return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(board1), board2: gameLogic_1.getGuessBoard(board2) });
     }
 };
 __decorate([
@@ -90,18 +162,29 @@ __decorate([
 __decorate([
     routing_controllers_1.Authorized(),
     routing_controllers_1.Get('/games/:id([0-9]+)'),
-    __param(0, routing_controllers_1.Param('id')),
+    __param(0, routing_controllers_1.CurrentUser()),
+    __param(1, routing_controllers_1.Param('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [entity_1.default, Number]),
+    __metadata("design:returntype", Promise)
 ], GameController.prototype, "getGame", null);
 __decorate([
     routing_controllers_1.Authorized(),
     routing_controllers_1.Get('/games'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], GameController.prototype, "getGames", null);
+__decorate([
+    routing_controllers_1.Authorized(),
+    routing_controllers_1.Patch('/games/:id([0-9]+)'),
+    __param(0, routing_controllers_1.CurrentUser()),
+    __param(1, routing_controllers_1.Param('id')),
+    __param(2, routing_controllers_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [entity_1.default, Number, Object]),
+    __metadata("design:returntype", Promise)
+], GameController.prototype, "updateGame", null);
 GameController = __decorate([
     routing_controllers_1.JsonController()
 ], GameController);
