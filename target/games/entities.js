@@ -46,6 +46,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Game.prototype, "p2ready", void 0);
 __decorate([
+    typeorm_1.Column('char', { length: 1, nullable: true }),
+    __metadata("design:type", String)
+], Game.prototype, "winner", void 0);
+__decorate([
     typeorm_1.Column('char', { length: 1, default: '1' }),
     __metadata("design:type", String)
 ], Game.prototype, "turn", void 0);
@@ -76,9 +80,13 @@ __decorate([
     __metadata("design:type", Game)
 ], Player.prototype, "game", void 0);
 __decorate([
-    typeorm_1.Column(),
+    typeorm_1.RelationId((player) => player.user),
     __metadata("design:type", Number)
 ], Player.prototype, "userId", void 0);
+__decorate([
+    typeorm_1.Column('char', { length: 1 }),
+    __metadata("design:type", String)
+], Player.prototype, "symbol", void 0);
 Player = __decorate([
     typeorm_1.Entity(),
     typeorm_1.Index(['game', 'user'], { unique: true })

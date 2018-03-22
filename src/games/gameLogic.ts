@@ -57,6 +57,7 @@ export const gameWon = (board: Board) => {
 }
 
 export const getGuessBoard = (board: Board): Board => {
+  console.log('*************'+typeof(board))
   const guessBoard = board.map(row => row.map(
     value=> {
       if (['1x','2x','3x','4x','5x'].includes(value))

@@ -3,18 +3,17 @@ import {
   Body, Patch
 } from 'routing-controllers'
 import User from '../users/entity'
-import { Game, Player, Board } from './entities'
-import {IsBoard, getGuessBoard} from './gameLogic'
-import { Validate } from 'class-validator'
+import { Game, Player } from './entities'
+import {getGuessBoard, hit, gameWon} from './gameLogic'
+//import { Validate } from 'class-validator'
 import {io} from '../index'
 
-class GameUpdate {
-
-  @Validate(IsBoard, {
-    message: 'Not a valid board'
-  })
-  board: Board
-}
+// class GameUpdate {
+//   @Validate(IsBoard, {
+//     message: 'Not a valid board'
+//   })
+//   board: Board
+// }
 
 @JsonController()
 export default class GameController {
@@ -29,7 +28,8 @@ export default class GameController {
 
     await Player.create({
       game: entity,
-      user
+      user,
+      symbol: '1'
     }).save()
 
     const game = await Game.findOneById(entity.id)
@@ -63,11 +63,16 @@ export default class GameController {
     const player = await Player.create({
       game,
       user,
+      symbol: '2'
     }).save()
+
+    const gameToSend = await Game.findOneById(game.id)
+    if (!gameToSend) throw new BadRequestError(`Game does not exist`)
+    //console.log(getGuessBoard(gameToSend.board1))
 
     io.emit('action', {
       type: 'UPDATE_GAME',
-      payload: await Game.findOneById(game.id)
+      payload: {...gameToSend, board1: getGuessBoard(gameToSend.board1)}
     })
 
     return player
@@ -75,16 +80,114 @@ export default class GameController {
 
   @Authorized()
   @Get('/games/:id([0-9]+)')
-  getGame(
+  async getGame(
+    @CurrentUser() user: User,
     @Param('id') id: number
   ) {
-    return Game.findOneById(id)
+    const game = await Game.findOneById(id)
+    if (!game) throw new BadRequestError(`Game does not exist`)
+
+    const player = await Player.findOne({ user, game })
+    if (!player)
+      return {...game, board1: getGuessBoard(game.board1), board2: getGuessBoard(game.board2)}
+    if (player.symbol==='1')
+      return {...game, board2: getGuessBoard(game.board2)}
+    if (player.symbol==='2')
+      return {...game, board1: getGuessBoard(game.board1)}
   }
 
   @Authorized()
   @Get('/games')
-  getGames() {
-    return Game.find()
+  async getGames(
+  ) {
+    let games = await Game.find({status:'pending'})
+    return games
   }
 
+  @Authorized()
+  // the reason that we're using patch here is because this request is not idempotent
+  // http://restcookbook.com/HTTP%20Methods/idempotency/
+  // try to fire the same requests twice, see what happens
+  @Patch('/games/:id([0-9]+)')
+  async updateGame(
+    @CurrentUser() user: User,
+    @Param('id') gameId: number,
+    @Body() update: {x,y,board}
+  ) {
+    //console.log(getGuessBoard(JSON.parse(update.board)))
+    let up
+    if (update.board){
+      up = JSON.parse(update.board)
+      console.log(typeof(up[3][4]))
+      console.log(up[3])
+    }
+    //console.log(JSON.parse(update.board))
+    //update.board=JSON.parse(update.board)
+    //console.log(update.board)
+    //console.log(typeof(update.board))
+    const game = await Game.findOneById(gameId)
+    if (!game) throw new NotFoundError(`Game does not exist`)
+
+    const player = await Player.findOne({ user, game })
+
+    if (!player) throw new ForbiddenError(`You are not part of this game`)
+    if (game.status !== 'started') throw new BadRequestError(`The game is not started yet`)
+
+    if (game.p1ready && game.p2ready){
+      if (player.symbol !== game.turn) throw new BadRequestError(`It's not your turn`)
+      switch(player.symbol){
+        case '1':
+          console.log(update.x)
+          game.board2 = hit (game.board2, update.x, update.y)
+          if(gameWon(game.board2)) {
+            game.winner='1'
+            game.status='finished'
+          }
+          else {
+            game.turn = '2'
+          }
+          break
+
+        case '2':
+          game.board1 = hit (game.board1, update.x, update.y)
+          if(gameWon(game.board1)) {
+            game.winner='2'
+            game.status='finished'
+          }
+          else {
+            game.turn = '1'
+          }
+          break
+
+        default:
+          break
+      }
+    }
+
+    if (player.symbol==='1' && !game.p1ready) {
+      console.log('1111111111111111')
+      game.board1 = up
+      game.p1ready= true
+    }
+
+    if (player.symbol==='2' && !game.p2ready) {
+      console.log('22222222222222222')
+      game.board2 = up
+      game.p2ready= true
+    }
+
+    console.log(game)
+    await game.save()
+
+    const board2 = game.board2
+    const board1 = game.board1
+    console.log('================'+typeof(board2))
+    io.emit('action', {
+      type: 'UPDATE_GAME',
+      payload: player.symbol==='1'? {...game,board2:getGuessBoard(board2)} :
+                                    {...game,board1:getGuessBoard(board1)}
+    })
+    console.log('================'+typeof(board1))
+    return {...game, board1:getGuessBoard(board1), board2:getGuessBoard(board2)} //lol
+  }
 }
