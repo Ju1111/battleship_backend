@@ -21,7 +21,7 @@ export const newGame = () => {
 
 // give a square a hit value to be able to change class for css styling
 export const hit = (board: Board, x: number, y: number) => {
-  board[x][y] += 'x'
+  if (!board[x][y].includes('x')) board[x][y] += 'x'
   return board
 }
 

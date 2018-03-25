@@ -23,7 +23,8 @@ exports.newGame = () => {
     return entities_1.emptyBoard;
 };
 exports.hit = (board, x, y) => {
-    board[x][y] += 'x';
+    if (!board[x][y].includes('x'))
+        board[x][y] += 'x';
     return board;
 };
 exports.isShip = (board, x, y) => {
