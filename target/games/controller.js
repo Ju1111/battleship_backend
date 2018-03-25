@@ -28,12 +28,11 @@ let GameController = class GameController {
         const game = await entities_1.Game.findOneById(entity.id);
         if (!game)
             throw new routing_controllers_1.BadRequestError(`Game does not exist`);
-        const guessBoard = gameLogic_1.getGuessBoard(game.board2);
         index_1.io.emit('action', {
             type: 'ADD_GAME',
-            payload: Object.assign({}, game, { board2: guessBoard })
+            payload: game
         });
-        return game;
+        return game.board1;
     }
     async joinGame(user, gameId) {
         const game = await entities_1.Game.findOneById(gameId);
