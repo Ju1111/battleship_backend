@@ -42,19 +42,16 @@ let GameController = class GameController {
             throw new routing_controllers_1.BadRequestError(`Game is already started`);
         game.status = 'started';
         await game.save();
-        const player = await entities_1.Player.create({
+        await entities_1.Player.create({
             game,
             user,
             symbol: '2'
         }).save();
-        const gameToSend = await entities_1.Game.findOneById(game.id);
-        if (!gameToSend)
-            throw new routing_controllers_1.BadRequestError(`Game does not exist`);
         index_1.io.emit('action', {
             type: 'UPDATE_GAME',
-            payload: Object.assign({}, gameToSend, { board1: gameLogic_1.getGuessBoard(gameToSend.board1) })
+            payload: gameLogic_1.gameToSend(game)
         });
-        return player;
+        return game.board2;
     }
     async getGame(user, id) {
         const game = await entities_1.Game.findOneById(id);

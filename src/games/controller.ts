@@ -59,22 +59,18 @@ export default class GameController {
     game.status = 'started'
     await game.save()
 
-    const player = await Player.create({
+    await Player.create({
       game,
       user,
       symbol: '2'
     }).save()
 
-    const gameToSend = await Game.findOneById(game.id)
-    if (!gameToSend) throw new BadRequestError(`Game does not exist`)
-    //console.log(getGuessBoard(gameToSend.board1))
-
     io.emit('action', {
       type: 'UPDATE_GAME',
-      payload: {...gameToSend, board1: getGuessBoard(gameToSend.board1)}
+      payload: gameToSend(game)
     })
 
-    return player
+    return game.board2
   }
 
   @Authorized()
