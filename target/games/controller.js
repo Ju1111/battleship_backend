@@ -32,7 +32,7 @@ let GameController = class GameController {
             type: 'ADD_GAME',
             payload: game
         });
-        return game.board1;
+        return { board: game.board1, guessBoard: game.board2 };
     }
     async joinGame(user, gameId) {
         const game = await entities_1.Game.findOneById(gameId);
@@ -51,26 +51,33 @@ let GameController = class GameController {
             type: 'UPDATE_GAME',
             payload: gameLogic_1.gameToSend(game)
         });
-        return game.board2;
+        return { board: game.board2, guessBoard: game.board1 };
     }
     async getGame(user, id) {
         const game = await entities_1.Game.findOneById(id);
         if (!game)
             throw new routing_controllers_1.BadRequestError(`Game does not exist`);
+        const toSend = gameLogic_1.gameToSend(game);
         const player = await entities_1.Player.findOne({ user, game });
         if (!player)
             return {
-                game: gameLogic_1.gameToSend(game)
+                game: toSend
             };
         if (player.symbol === '1')
             return {
-                game: gameLogic_1.gameToSend(game),
-                board: game.board1
+                game: toSend,
+                boards: {
+                    board: game.board1,
+                    guessBoard: toSend.board2
+                }
             };
         if (player.symbol === '2')
             return {
                 game: gameLogic_1.gameToSend(game),
-                board: game.board2
+                boards: {
+                    board: game.board2,
+                    guessBoard: toSend.board1
+                }
             };
     }
     async getGames() {
@@ -119,12 +126,10 @@ let GameController = class GameController {
             }
         }
         if (player.symbol === '1' && !game.p1ready) {
-            console.log('1111111111111111');
             game.board1 = up;
             game.p1ready = true;
         }
         if (player.symbol === '2' && !game.p2ready) {
-            console.log('22222222222222222');
             game.board2 = up;
             game.p2ready = true;
         }
@@ -134,7 +139,12 @@ let GameController = class GameController {
             type: 'UPDATE_GAME',
             payload: gameLogic_1.gameToSend(game)
         });
-        return player.symbol === '1' ? game.board1 : game.board2;
+        if (player.symbol === '1') {
+            return { board: game.board1, guessBoard: gameLogic_1.getGuessBoard(game.board2) };
+        }
+        if (player.symbol === '2') {
+            return { board: game.board2, guessBoard: gameLogic_1.getGuessBoard(game.board1) };
+        }
     }
 };
 __decorate([

@@ -37,10 +37,10 @@ export default class GameController {
 
     io.emit('action', {
       type: 'ADD_GAME',
-      payload: game  //It doesn't matter to sent game as it's boards are still empty
+      payload: game  //It doesn't matter to sent game as boards are still empty
     })
 
-    return game.board1
+    return {board:game.board1 , guessBoard:game.board2}
   }
 
 
@@ -70,7 +70,7 @@ export default class GameController {
       payload: gameToSend(game)
     })
 
-    return game.board2
+    return {board:game.board2, guessBoard:game.board1}
   }
 
   @Authorized()
@@ -82,20 +82,27 @@ export default class GameController {
     const game = await Game.findOneById(id)
     if (!game) throw new BadRequestError(`Game does not exist`)
 
+    const toSend=gameToSend(game)
     const player = await Player.findOne({ user, game })
     if (!player)
       return {
-        game: gameToSend(game)
+        game: toSend
       }
     if (player.symbol==='1')
       return {
-        game: gameToSend(game),
-        board: game.board1
+        game: toSend,
+        boards:{
+          board: game.board1,
+          guessBoard: toSend.board2
+        }
       }
     if (player.symbol==='2')
       return {
         game: gameToSend(game),
-        board: game.board2
+        boards:{
+          board: game.board2,
+          guessBoard: toSend.board1
+        }
       }
   }
 
@@ -117,17 +124,12 @@ export default class GameController {
     @Param('id') gameId: number,
     @Body() update: {x,y,board}
   ) {
-    //console.log(getGuessBoard(JSON.parse(update.board)))
+
     let up
     if (update.board){
       up = JSON.parse(update.board)
-      //console.log(typeof(up[3][4]))
-      //console.log(up[3])
     }
-    //console.log(JSON.parse(update.board))
-    //update.board=JSON.parse(update.board)
-    //console.log(update.board)
-    //console.log(typeof(update.board))
+
     const game = await Game.findOneById(gameId)
     if (!game) throw new NotFoundError(`Game does not exist`)
 
@@ -168,13 +170,13 @@ export default class GameController {
     }
 
     if (player.symbol==='1' && !game.p1ready) {
-      console.log('1111111111111111')
+      //console.log('1111111111111111')
       game.board1 = up
       game.p1ready= true
     }
 
     if (player.symbol==='2' && !game.p2ready) {
-      console.log('22222222222222222')
+      //console.log('22222222222222222')
       game.board2 = up
       game.p2ready= true
     }
@@ -182,14 +184,17 @@ export default class GameController {
     console.log(game)
     await game.save()
 
-    // const board2 = game.board2
-    // const board1 = game.board1
-    // console.log('================'+typeof(board2))
     io.emit('action', {
       type: 'UPDATE_GAME',
       payload: gameToSend(game)
     })
-  //  console.log('================'+typeof(board1))
-    return player.symbol==='1'? game.board1:game.board2
+
+
+    if (player.symbol==='1') {
+      return {board: game.board1, guessBoard: getGuessBoard(game.board2)}
+    }
+    if (player.symbol==='2') {
+      return {board: game.board2, guessBoard: getGuessBoard(game.board1)}
+    }
   }
 }
