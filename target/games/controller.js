@@ -59,11 +59,19 @@ let GameController = class GameController {
             throw new routing_controllers_1.BadRequestError(`Game does not exist`);
         const player = await entities_1.Player.findOne({ user, game });
         if (!player)
-            return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(game.board1), board2: gameLogic_1.getGuessBoard(game.board2) });
+            return {
+                game: gameLogic_1.gameToSend(game)
+            };
         if (player.symbol === '1')
-            return Object.assign({}, game, { board2: gameLogic_1.getGuessBoard(game.board2) });
+            return {
+                game: gameLogic_1.gameToSend(game),
+                board: game.board1
+            };
         if (player.symbol === '2')
-            return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(game.board1) });
+            return {
+                game: gameLogic_1.gameToSend(game),
+                board: game.board2
+            };
     }
     async getGames() {
         let games = await entities_1.Game.find({ status: 'pending' });
