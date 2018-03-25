@@ -121,8 +121,8 @@ export default class GameController {
     let up
     if (update.board){
       up = JSON.parse(update.board)
-      console.log(typeof(up[3][4]))
-      console.log(up[3])
+      //console.log(typeof(up[3][4]))
+      //console.log(up[3])
     }
     //console.log(JSON.parse(update.board))
     //update.board=JSON.parse(update.board)
@@ -140,7 +140,7 @@ export default class GameController {
       if (player.symbol !== game.turn) throw new BadRequestError(`It's not your turn`)
       switch(player.symbol){
         case '1':
-          console.log(update.x)
+          //console.log(update.x)
           game.board2 = hit (game.board2, update.x, update.y)
           if(gameWon(game.board2)) {
             game.winner='1'
@@ -182,15 +182,14 @@ export default class GameController {
     console.log(game)
     await game.save()
 
-    const board2 = game.board2
-    const board1 = game.board1
-    console.log('================'+typeof(board2))
+    // const board2 = game.board2
+    // const board1 = game.board1
+    // console.log('================'+typeof(board2))
     io.emit('action', {
       type: 'UPDATE_GAME',
-      payload: player.symbol==='1'? {...game,board2:getGuessBoard(board2)} :
-                                    {...game,board1:getGuessBoard(board1)}
+      payload: gameToSend(game)
     })
-    console.log('================'+typeof(board1))
-    return {...game, board1:getGuessBoard(board1), board2:getGuessBoard(board2)} //lol
+  //  console.log('================'+typeof(board1))
+    return player.symbol==='1'? game.board1:game.board2
   }
 }

@@ -81,8 +81,6 @@ let GameController = class GameController {
         let up;
         if (update.board) {
             up = JSON.parse(update.board);
-            console.log(typeof (up[3][4]));
-            console.log(up[3]);
         }
         const game = await entities_1.Game.findOneById(gameId);
         if (!game)
@@ -97,7 +95,6 @@ let GameController = class GameController {
                 throw new routing_controllers_1.BadRequestError(`It's not your turn`);
             switch (player.symbol) {
                 case '1':
-                    console.log(update.x);
                     game.board2 = gameLogic_1.hit(game.board2, update.x, update.y);
                     if (gameLogic_1.gameWon(game.board2)) {
                         game.winner = '1';
@@ -133,15 +130,11 @@ let GameController = class GameController {
         }
         console.log(game);
         await game.save();
-        const board2 = game.board2;
-        const board1 = game.board1;
-        console.log('================' + typeof (board2));
         index_1.io.emit('action', {
             type: 'UPDATE_GAME',
-            payload: player.symbol === '1' ? Object.assign({}, game, { board2: gameLogic_1.getGuessBoard(board2) }) : Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(board1) })
+            payload: gameLogic_1.gameToSend(game)
         });
-        console.log('================' + typeof (board1));
-        return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(board1), board2: gameLogic_1.getGuessBoard(board2) });
+        return player.symbol === '1' ? game.board1 : game.board2;
     }
 };
 __decorate([
