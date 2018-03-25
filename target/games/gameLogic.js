@@ -49,7 +49,6 @@ exports.gameWon = (board) => {
         exports.shipIsDestroyed(board, '5x', 5));
 };
 exports.getGuessBoard = (board) => {
-    console.log('*************' + typeof (board));
     const guessBoard = board.map(row => row.map(value => {
         if (['1x', '2x', '3x', '4x', '5x'].includes(value))
             return 's';
@@ -58,5 +57,8 @@ exports.getGuessBoard = (board) => {
         return '0';
     }));
     return guessBoard;
+};
+exports.gameToSend = (game) => {
+    return Object.assign({}, game, { board1: exports.getGuessBoard(game.board1), board2: exports.getGuessBoard(game.board2) });
 };
 //# sourceMappingURL=gameLogic.js.map
