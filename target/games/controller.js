@@ -74,8 +74,8 @@ let GameController = class GameController {
             };
     }
     async getGames() {
-        let games = await entities_1.Game.find({ status: 'pending' });
-        return games;
+        let games = await entities_1.Game.find();
+        return games.map(game => gameLogic_1.gameToSend(game));
     }
     async updateGame(user, gameId, update) {
         let up;

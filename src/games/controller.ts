@@ -103,8 +103,8 @@ export default class GameController {
   @Get('/games')
   async getGames(
   ) {
-    let games = await Game.find({status:'pending'})
-    return games
+    let games = await Game.find()
+    return games.map(game => gameToSend(game))
   }
 
   @Authorized()
