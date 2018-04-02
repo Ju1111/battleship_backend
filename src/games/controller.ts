@@ -125,11 +125,6 @@ export default class GameController {
     @Body() update: {x,y,board}
   ) {
 
-    let up
-    if (update.board){
-      up = JSON.parse(update.board)
-    }
-
     const game = await Game.findOneById(gameId)
     if (!game) throw new NotFoundError(`Game does not exist`)
 
@@ -171,17 +166,17 @@ export default class GameController {
 
     if (player.symbol==='1' && !game.p1ready) {
       //console.log('1111111111111111')
-      game.board1 = up
+      game.board1 = update.board
       game.p1ready= true
     }
 
     if (player.symbol==='2' && !game.p2ready) {
       //console.log('22222222222222222')
-      game.board2 = up
+      game.board2 = update.board
       game.p2ready= true
     }
 
-    console.log(game)
+    //console.log(game)
     await game.save()
 
     io.emit('action', {
