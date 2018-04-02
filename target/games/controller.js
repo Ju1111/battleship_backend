@@ -85,10 +85,6 @@ let GameController = class GameController {
         return games.map(game => gameLogic_1.gameToSend(game));
     }
     async updateGame(user, gameId, update) {
-        let up;
-        if (update.board) {
-            up = JSON.parse(update.board);
-        }
         const game = await entities_1.Game.findOneById(gameId);
         if (!game)
             throw new routing_controllers_1.NotFoundError(`Game does not exist`);
@@ -126,14 +122,13 @@ let GameController = class GameController {
             }
         }
         if (player.symbol === '1' && !game.p1ready) {
-            game.board1 = up;
+            game.board1 = update.board;
             game.p1ready = true;
         }
         if (player.symbol === '2' && !game.p2ready) {
-            game.board2 = up;
+            game.board2 = update.board;
             game.p2ready = true;
         }
-        console.log(game);
         await game.save();
         index_1.io.emit('action', {
             type: 'UPDATE_GAME',
