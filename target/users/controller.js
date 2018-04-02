@@ -23,12 +23,19 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const routing_controllers_1 = require("routing-controllers");
 const entity_1 = require("./entity");
+const index_1 = require("../index");
 let UserController = class UserController {
     async signup(user) {
         const { password } = user, rest = __rest(user, ["password"]);
         const entity = entity_1.default.create(rest);
         await entity.setPassword(password);
-        return entity.save();
+        await entity.save();
+        const users = await entity_1.default.find();
+        index_1.io.emit('action', {
+            type: 'UPDATE_USERS',
+            payload: users
+        });
+        return entity;
     }
     getUser(id) {
         return entity_1.default.findOneById(id);
