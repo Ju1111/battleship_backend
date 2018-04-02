@@ -28,12 +28,11 @@ let GameController = class GameController {
         const game = await entities_1.Game.findOneById(entity.id);
         if (!game)
             throw new routing_controllers_1.BadRequestError(`Game does not exist`);
-        const guessBoard = gameLogic_1.getGuessBoard(game.board2);
         index_1.io.emit('action', {
             type: 'ADD_GAME',
-            payload: Object.assign({}, game, { board2: guessBoard })
+            payload: game
         });
-        return game;
+        return { board: game.board1, guessBoard: game.board2 };
     }
     async joinGame(user, gameId) {
         const game = await entities_1.Game.findOneById(gameId);
@@ -43,42 +42,52 @@ let GameController = class GameController {
             throw new routing_controllers_1.BadRequestError(`Game is already started`);
         game.status = 'started';
         await game.save();
-        const player = await entities_1.Player.create({
+        await entities_1.Player.create({
             game,
             user,
             symbol: '2'
         }).save();
-        const gameToSend = await entities_1.Game.findOneById(game.id);
-        if (!gameToSend)
-            throw new routing_controllers_1.BadRequestError(`Game does not exist`);
         index_1.io.emit('action', {
             type: 'UPDATE_GAME',
-            payload: Object.assign({}, gameToSend, { board1: gameLogic_1.getGuessBoard(gameToSend.board1) })
+            payload: gameLogic_1.gameToSend(game)
         });
-        return player;
+        return { board: game.board2, guessBoard: game.board1 };
     }
     async getGame(user, id) {
         const game = await entities_1.Game.findOneById(id);
         if (!game)
             throw new routing_controllers_1.BadRequestError(`Game does not exist`);
+        const toSend = gameLogic_1.gameToSend(game);
         const player = await entities_1.Player.findOne({ user, game });
         if (!player)
-            return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(game.board1), board2: gameLogic_1.getGuessBoard(game.board2) });
+            return {
+                game: toSend
+            };
         if (player.symbol === '1')
-            return Object.assign({}, game, { board2: gameLogic_1.getGuessBoard(game.board2) });
+            return {
+                game: toSend,
+                boards: {
+                    board: game.board1,
+                    guessBoard: toSend.board2
+                }
+            };
         if (player.symbol === '2')
-            return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(game.board1) });
+            return {
+                game: gameLogic_1.gameToSend(game),
+                boards: {
+                    board: game.board2,
+                    guessBoard: toSend.board1
+                }
+            };
     }
     async getGames() {
-        let games = await entities_1.Game.find({ status: 'pending' });
-        return games;
+        let games = await entities_1.Game.find();
+        return games.map(game => gameLogic_1.gameToSend(game));
     }
     async updateGame(user, gameId, update) {
         let up;
         if (update.board) {
             up = JSON.parse(update.board);
-            console.log(typeof (up[3][4]));
-            console.log(up[3]);
         }
         const game = await entities_1.Game.findOneById(gameId);
         if (!game)
@@ -93,7 +102,6 @@ let GameController = class GameController {
                 throw new routing_controllers_1.BadRequestError(`It's not your turn`);
             switch (player.symbol) {
                 case '1':
-                    console.log(update.x);
                     game.board2 = gameLogic_1.hit(game.board2, update.x, update.y);
                     if (gameLogic_1.gameWon(game.board2)) {
                         game.winner = '1';
@@ -118,26 +126,25 @@ let GameController = class GameController {
             }
         }
         if (player.symbol === '1' && !game.p1ready) {
-            console.log('1111111111111111');
             game.board1 = up;
             game.p1ready = true;
         }
         if (player.symbol === '2' && !game.p2ready) {
-            console.log('22222222222222222');
             game.board2 = up;
             game.p2ready = true;
         }
         console.log(game);
         await game.save();
-        const board2 = game.board2;
-        const board1 = game.board1;
-        console.log('================' + typeof (board2));
         index_1.io.emit('action', {
             type: 'UPDATE_GAME',
-            payload: player.symbol === '1' ? Object.assign({}, game, { board2: gameLogic_1.getGuessBoard(board2) }) : Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(board1) })
+            payload: gameLogic_1.gameToSend(game)
         });
-        console.log('================' + typeof (board1));
-        return Object.assign({}, game, { board1: gameLogic_1.getGuessBoard(board1), board2: gameLogic_1.getGuessBoard(board2) });
+        if (player.symbol === '1') {
+            return { board: game.board1, guessBoard: gameLogic_1.getGuessBoard(game.board2) };
+        }
+        if (player.symbol === '2') {
+            return { board: game.board2, guessBoard: gameLogic_1.getGuessBoard(game.board1) };
+        }
     }
 };
 __decorate([

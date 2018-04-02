@@ -21,7 +21,7 @@ export const newGame = () => {
 
 // give a square a hit value to be able to change class for css styling
 export const hit = (board: Board, x: number, y: number) => {
-  board[x][y] += 'x'
+  if (!board[x][y].includes('x')) board[x][y] += 'x'
   return board
 }
 
@@ -57,7 +57,7 @@ export const gameWon = (board: Board) => {
 }
 
 export const getGuessBoard = (board: Board): Board => {
-  console.log('*************'+typeof(board))
+//  console.log('*************'+typeof(board))
   const guessBoard = board.map(row => row.map(
     value=> {
       if (['1x','2x','3x','4x','5x'].includes(value))
@@ -68,4 +68,9 @@ export const getGuessBoard = (board: Board): Board => {
     }
   ))
   return guessBoard
+}
+
+
+export const gameToSend = (game) => {
+  return {...game, board1:getGuessBoard(game.board1), board2: getGuessBoard(game.board2)}
 }
