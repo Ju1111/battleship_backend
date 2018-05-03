@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "start": "node ."
+    "start": "node .",
+    "dev": "nodemon .",
+    "compile": "tsc -p ."
   },
   "main": "target/index.js",
   "dependencies": {
