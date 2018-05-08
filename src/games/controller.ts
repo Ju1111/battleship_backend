@@ -86,24 +86,20 @@ export default class GameController {
     const player = await Player.findOne({ user, game })
     if (!player)
       return {
-        game: toSend
+        board: toSend.board1,
+        guessBoard: toSend.board2
       }
     if (player.symbol==='1')
       return {
-        game: toSend,
-        boards:{
           board: game.board1,
           guessBoard: toSend.board2
         }
-      }
+
     if (player.symbol==='2')
       return {
-        game: gameToSend(game),
-        boards:{
           board: game.board2,
           guessBoard: toSend.board1
         }
-      }
   }
 
   @Authorized()
