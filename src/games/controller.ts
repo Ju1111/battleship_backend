@@ -81,24 +81,18 @@ export default class GameController {
   ) {
     const game = await Game.findOneById(id)
     if (!game) throw new BadRequestError(`Game does not exist`)
-
-    const toSend=gameToSend(game)
+    
     const player = await Player.findOne({ user, game })
     if (!player)
-      return {
-        board: toSend.board1,
-        guessBoard: toSend.board2
-      }
+      throw new ForbiddenError('User not playing in the game')
     if (player.symbol==='1')
       return {
-          board: game.board1,
-          guessBoard: toSend.board2
+          board: game.board1
         }
 
     if (player.symbol==='2')
       return {
-          board: game.board2,
-          guessBoard: toSend.board1
+          board: game.board2
         }
   }
 
