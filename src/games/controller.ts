@@ -81,7 +81,7 @@ export default class GameController {
   ) {
     const game = await Game.findOneById(id)
     if (!game) throw new BadRequestError(`Game does not exist`)
-    
+
     const player = await Player.findOne({ user, game })
     if (!player)
       throw new ForbiddenError('User not playing in the game')
@@ -175,11 +175,8 @@ export default class GameController {
     })
 
 
-    if (player.symbol==='1') {
-      return {board: game.board1, guessBoard: getGuessBoard(game.board2)}
-    }
-    if (player.symbol==='2') {
-      return {board: game.board2, guessBoard: getGuessBoard(game.board1)}
+    return {
+      message: 'Game successfully updated'
     }
   }
 }
