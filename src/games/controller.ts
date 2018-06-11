@@ -67,7 +67,7 @@ export default class GameController {
 
     io.emit('action', {
       type: 'UPDATE_GAME',
-      payload: gameToSend(game)
+      payload: gameToSend(await Game.findOneById(gameId))
     })
 
     return {board:game.board2, guessBoard:game.board1}
