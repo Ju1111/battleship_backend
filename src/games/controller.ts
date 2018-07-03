@@ -4,7 +4,7 @@ import {
 } from 'routing-controllers'
 import User from '../users/entity'
 import { Game, Player } from './entities'
-import {getGuessBoard, hit, gameWon, gameToSend} from './gameLogic'
+import { hit, gameWon, gameToSend} from './gameLogic'
 //import { Validate } from 'class-validator'
 import {io} from '../index'
 
@@ -40,7 +40,9 @@ export default class GameController {
       payload: game  //It doesn't matter to sent game as boards are still empty
     })
 
-    return {board:game.board1 , guessBoard:game.board2}
+    return {
+      message: 'Game successfully created'
+    }
   }
 
 
@@ -67,10 +69,12 @@ export default class GameController {
 
     io.emit('action', {
       type: 'UPDATE_GAME',
-      payload: gameToSend(game)
+      payload: gameToSend(await Game.findOneById(gameId))
     })
 
-    return {board:game.board2, guessBoard:game.board1}
+    return {
+      message: 'A user joined the game'
+    }
   }
 
   @Authorized()
@@ -82,23 +86,30 @@ export default class GameController {
     const game = await Game.findOneById(id)
     if (!game) throw new BadRequestError(`Game does not exist`)
 
-    const toSend=gameToSend(game)
     const player = await Player.findOne({ user, game })
     if (!player)
       return {
-        board: toSend.board1,
-        guessBoard: toSend.board2
+        board: [
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+          ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
+        ]
       }
     if (player.symbol==='1')
       return {
-          board: game.board1,
-          guessBoard: toSend.board2
+          board: game.board1
         }
 
     if (player.symbol==='2')
       return {
-          board: game.board2,
-          guessBoard: toSend.board1
+          board: game.board2
         }
   }
 
@@ -128,6 +139,11 @@ export default class GameController {
 
     if (!player) throw new ForbiddenError(`You are not part of this game`)
     if (game.status !== 'started') throw new BadRequestError(`The game is not started yet`)
+
+    if ((player.symbol === '1' && game.p1ready && !game.p2ready) ||
+        (player.symbol === '2' && game.p2ready && !game.p1ready)) {
+      throw new BadRequestError('Other player not ready')
+    }
 
     if (game.p1ready && game.p2ready){
       if (player.symbol !== game.turn) throw new BadRequestError(`It's not your turn`)
@@ -181,11 +197,8 @@ export default class GameController {
     })
 
 
-    if (player.symbol==='1') {
-      return {board: game.board1, guessBoard: getGuessBoard(game.board2)}
-    }
-    if (player.symbol==='2') {
-      return {board: game.board2, guessBoard: getGuessBoard(game.board1)}
+    return {
+      message: 'Game successfully updated'
     }
   }
 }
