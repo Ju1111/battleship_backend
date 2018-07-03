@@ -140,6 +140,11 @@ export default class GameController {
     if (!player) throw new ForbiddenError(`You are not part of this game`)
     if (game.status !== 'started') throw new BadRequestError(`The game is not started yet`)
 
+    if ((player.symbol === '1' && game.p1ready && !game.p2ready) ||
+        (player.symbol === '2' && game.p2ready && !game.p1ready)) {
+      throw new BadRequestError('Other player not ready')
+    }
+
     if (game.p1ready && game.p2ready){
       if (player.symbol !== game.turn) throw new BadRequestError(`It's not your turn`)
       switch(player.symbol){
