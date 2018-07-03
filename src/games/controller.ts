@@ -4,7 +4,7 @@ import {
 } from 'routing-controllers'
 import User from '../users/entity'
 import { Game, Player } from './entities'
-import {getGuessBoard, hit, gameWon, gameToSend} from './gameLogic'
+import { hit, gameWon, gameToSend} from './gameLogic'
 //import { Validate } from 'class-validator'
 import {io} from '../index'
 
@@ -40,7 +40,9 @@ export default class GameController {
       payload: game  //It doesn't matter to sent game as boards are still empty
     })
 
-    return {board:game.board1 , guessBoard:game.board2}
+    return {
+      message: 'Game successfully created'
+    }
   }
 
 
@@ -70,7 +72,9 @@ export default class GameController {
       payload: gameToSend(await Game.findOneById(gameId))
     })
 
-    return {board:game.board2, guessBoard:game.board1}
+    return {
+      message: 'A user joined the game'
+    }
   }
 
   @Authorized()
